@@ -380,10 +380,6 @@ class Database:
   #      else:
      #       return False
 
-    class Database:
-    def __init__(self, db):
-        self.grp_and_ids = db["force_subscriptions"]  # Collection name
-
     async def setFsub(self, grpID, fsubIDs):
         """Set or update force subscription channels for a group."""
         existing = await self.grp_and_ids.find_one({"grpID": grpID})
