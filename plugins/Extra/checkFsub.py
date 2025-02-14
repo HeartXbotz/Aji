@@ -4,38 +4,46 @@ from pyrogram.errors import UserNotParticipant
 import asyncio
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 import traceback
-async def is_user_fsub(bot , message):
-    user_id = message.from_user.id
-    chat_id = message.chat.id
-    fSub = await db.getFsub(chat_id)
-    if fSub is None:
-        return True
-    #now checking if user in fsub chat id or not
-    else:
-        invite_link = await bot.export_chat_invite_link(chat_id=fSub)
-        try:
-            #getting chat invite link
-            await bot.get_chat_member(fSub , user_id)
-            return True
-        except UserNotParticipant:
-            join_button = InlineKeyboardButton("Join Channel", url=invite_link)
-            keyboard = [[join_button]]  # Create a list of lists for the InlineKeyboardMarkup
-            if message.from_user:
-                k = await message.reply(
-                    f"<b>⚠ Dᴇᴀʀ Usᴇʀ {message.from_user.mention}!\n\nTᴏ sᴇɴᴅ ᴍᴇssᴀɢᴇs ɪɴ ᴛʜᴇ ɢʀᴏᴜᴘ, ʏᴏᴜ ʜᴀᴠᴇ ᴛᴏ ᴊᴏɪɴ ᴛʜɪs ᴄʜᴀɴɴᴇʟ ғɪʀsᴛ 🥶</b>",
-                    reply_markup=InlineKeyboardMarkup(keyboard)
-                )
-            else:
-                k = await message.reply(
-                    "<b>⚠ Yᴏᴜ ɴᴇᴇᴅ ᴛᴏ ᴊᴏɪɴ ᴏᴜʀ ᴄʜᴀɴɴᴇʟ ʙᴇғᴏʀᴇ sᴇɴᴅɪɴɢ ᴍᴇssᴀɢᴇs ᴛᴏ ᴛʜɪs ɢʀᴏᴜᴘ 🥶</b>",
-                    reply_markup=InlineKeyboardMarkup(keyboard)
-                )
-            await message.delete()
-            await asyncio.sleep(40)
-            await k.delete()
-            return False
-        except Exception as e:
-            traceback.print_exc()
-            print('Err Got in is_user_fsub : ',e)
-            return True
 
+
+@Client.on_message(filters.group & filters.text & filters.incoming)
+async def give_filter(client, message):
+    if message.chat.id != SUPPORT_CHAT_ID:
+        settings = await get_settings(message.chat.id)
+        chatid = message.chat.id 
+        user_id = message.from_user.id if message.from_user else 0
+        if settings['fsub'] != None:
+            try:
+                btn = await pub_is_subscribed(client, message, settings['fsub'])
+                if btn:
+                    btn.append([InlineKeyboardButton("Joined ✅", callback_data=f"unmuteme#{int(user_id)}")])
+                    await client.restrict_chat_member(chatid, message.from_user.id, ChatPermissions(can_send_messages=False))
+                    await message.reply_photo(photo=random.choice(PICS), caption=f"👋 Hello {message.from_user.mention},\n\nPlease join the channel then click on Joined button. 😇", reply_markup=InlineKeyboardMarkup(btn), parse_mode=enums.ParseMode.HTML)
+                    return
+            except Exception as e:
+                print(e)
+            
+        manual = await manual_filters(client, message)
+        if manual == False:
+            settings = await get_settings(message.chat.id)
+            try:
+                if settings['auto_ffilter']:
+                    ai_search = True
+                    reply_msg = await message.reply_text(f"<b><i>Searching For {message.text} 🔍</i></b>")
+                    await auto_filter(client, message.text, message, reply_msg, ai_search)
+            except KeyError:
+                grpid = await active_connection(str(message.from_user.id))
+                await save_group_settings(grpid, 'auto_ffilter', True)
+                settings = await get_settings(message.chat.id)
+                if settings['auto_ffilter']:
+                    ai_search = True
+                    reply_msg = await message.reply_text(f"<b><i>Searching For {message.text} 🔍</i></b>")
+                    await auto_filter(client, message.text, message, reply_msg, ai_search)
+    else: #a better logic to avoid repeated lines of code in auto_filter function
+        search = message.text
+        temp_files, temp_offset, total_results = await get_search_results(chat_id=message.chat.id, query=search.lower(), offset=0, filter=True)
+        if total_results == 0:
+            return
+        else:
+            return await message.reply_text(f"<b>Hᴇʏ {message.from_user.mention}, {str(total_results)} ʀᴇsᴜʟᴛs ᴀʀᴇ ғᴏᴜɴᴅ ɪɴ ᴍʏ ᴅᴀᴛᴀʙᴀsᴇ ғᴏʀ ʏᴏᴜʀ ᴏ̨ᴜᴇʀʏ {search}. \n\nTʜɪs ɪs ᴀ sᴜᴘᴘᴏʀᴛ ɢʀᴏᴜᴘ sᴏ ᴛʜᴀᴛ ʏᴏᴜ ᴄᴀɴ'ᴛ ɢᴇᴛ ғɪʟᴇs ғʀᴏᴍ ʜᴇʀᴇ...\n\nJᴏɪɴ ᴀɴᴅ Sᴇᴀʀᴄʜ Hᴇʀᴇ - https://t.me/+TkKVc95vuKJlY2E1</b>")
+		    
