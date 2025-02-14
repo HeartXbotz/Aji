@@ -1,41 +1,54 @@
-# check if user in fsub or not
 from database.users_chats_db import db
 from pyrogram.errors import UserNotParticipant
 import asyncio
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 import traceback
-async def is_user_fsub(bot , message):
+
+async def is_user_fsub(bot, message):
     user_id = message.from_user.id
     chat_id = message.chat.id
-    fSub = await db.getFsub(chat_id)
-    if fSub is None:
-        return True
-    #now checking if user in fsub chat id or not
-    else:
-        invite_link = await bot.export_chat_invite_link(chat_id=fSub)
-        try:
-            #getting chat invite link
-            await bot.get_chat_member(fSub , user_id)
-            return True
-        except UserNotParticipant:
-            join_button = InlineKeyboardButton("Join Channel", url=invite_link)
-            keyboard = [[join_button]]  # Create a list of lists for the InlineKeyboardMarkup
-            if message.from_user:
-                k = await message.reply(
-                    f"<b>⚠ Dᴇᴀʀ Usᴇʀ {message.from_user.mention}!\n\nTᴏ sᴇɴᴅ ᴍᴇssᴀɢᴇs ɪɴ ᴛʜᴇ ɢʀᴏᴜᴘ, ʏᴏᴜ ʜᴀᴠᴇ ᴛᴏ ᴊᴏɪɴ ᴛʜɪs ᴄʜᴀɴɴᴇʟ ғɪʀsᴛ 🥶</b>",
-                    reply_markup=InlineKeyboardMarkup(keyboard)
-                )
-            else:
-                k = await message.reply(
-                    "<b>⚠ Yᴏᴜ ɴᴇᴇᴅ ᴛᴏ ᴊᴏɪɴ ᴏᴜʀ ᴄʜᴀɴɴᴇʟ ʙᴇғᴏʀᴇ sᴇɴᴅɪɴɢ ᴍᴇssᴀɢᴇs ᴛᴏ ᴛʜɪs ɢʀᴏᴜᴘ 🥶</b>",
-                    reply_markup=InlineKeyboardMarkup(keyboard)
-                )
-            await message.delete()
-            await asyncio.sleep(40)
-            await k.delete()
-            return False
-        except Exception as e:
-            traceback.print_exc()
-            print('Err Got in is_user_fsub : ',e)
-            return True
 
+    # Get the list of force-subscription channels
+    fSub_channels = await db.getFsub(chat_id)
+    
+    if not fSub_channels:  # If no force-subscription is set, allow user
+        return True  
+
+    missing_channels = []
+    invite_links = []
+
+    for fSub in fSub_channels:
+        try:
+            # Check if the user is a member of the channel
+            await bot.get_chat_member(fSub, user_id)
+        except UserNotParticipant:
+            try:
+                # Try to get the invite link or username-based link
+                chat = await bot.get_chat(fSub)
+                if chat.username:
+                    invite_links.append(f"https://t.me/{chat.username}")
+                else:
+                    invite_links.append(await bot.export_chat_invite_link(fSub))
+                missing_channels.append(chat.title)
+            except Exception as e:
+                print(f"Error getting invite link for {fSub}: {e}")
+                continue
+
+    if not missing_channels:  # If user is in all required channels
+        return True
+
+    # Create join buttons for missing channels
+    buttons = [InlineKeyboardButton(f"Join {name}", url=link) for name, link in zip(missing_channels, invite_links)]
+    keyboard = InlineKeyboardMarkup([buttons])
+
+    # Send warning message
+    warning_message = (
+        f"<b>⚠️ {message.from_user.mention}, You must join the required channels before sending messages here!</b>"
+    )
+    k = await message.reply(warning_message, reply_markup=keyboard)
+
+    await message.delete()
+    await asyncio.sleep(40)
+    await k.delete()
+    
+    return False
