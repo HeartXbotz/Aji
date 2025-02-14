@@ -363,22 +363,74 @@ class Database:
             print(f"Got err in db set : {e}")
             return False
     
-    async def setFsub(self , grpID , fsubID):
-        return await self.grp_and_ids.update_one({'grpID': grpID} , {'$set': {'grpID': grpID , "fsubID": fsubID}}, upsert=True)    
+#    async def setFsub(self , grpID , fsubID):
+ #       return await self.grp_and_ids.update_one({'grpID': grpID} , {'$set': {'grpID': grpID , "fsubID": fsubID}}, upsert=True)    
         
-    async def getFsub(self , grpID):
-        link = await self.grp_and_ids.find_one({"grpID": grpID})
-        if link is not None:
-            return link.get("fsubID")
-        else:
-            return None
+ #   async def getFsub(self , grpID):
+   #     link = await self.grp_and_ids.find_one({"grpID": grpID})
+ #       if link is not None:
+  #          return link.get("fsubID")
+ #       else:
+ #           return None
             
-    async def delFsub(self , grpID):
-        result =  await self.grp_and_ids.delete_one({"grpID": grpID})
-        if result.deleted_count != 0:
+ #   async def delFsub(self , grpID):
+ #       result =  await self.grp_and_ids.delete_one({"grpID": grpID})
+   #     if result.deleted_count != 0:
+   #         return True
+  #      else:
+     #       return False
+
+    class Database:
+    def __init__(self, db):
+        self.grp_and_ids = db["force_subscriptions"]  # Collection name
+
+    async def setFsub(self, grpID, fsubIDs):
+        """Set or update force subscription channels for a group."""
+        existing = await self.grp_and_ids.find_one({"grpID": grpID})
+        
+        if existing:
+            current_fsubs = existing.get("fsubIDs", [])
+            new_fsubs = list(set(current_fsubs + fsubIDs))  # Avoid duplicates
+        else:
+            new_fsubs = fsubIDs
+
+        await self.grp_and_ids.update_one(
+            {"grpID": grpID},
+            {"$set": {"fsubIDs": new_fsubs}},
+            upsert=True
+        )
+        return True
+
+    async def getFsub(self, grpID):
+        """Retrieve force subscription channels for a group."""
+        data = await self.grp_and_ids.find_one({"grpID": grpID})
+        return data.get("fsubIDs", []) if data else []
+
+    async def delFsub(self, grpID, fsubID=None):
+        """Delete specific force subscription channels or all if none specified."""
+        if fsubID:
+            # Remove specific channel
+            existing = await self.grp_and_ids.find_one({"grpID": grpID})
+            if not existing:
+                return False
+
+            current_fsubs = existing.get("fsubIDs", [])
+            if fsubID in current_fsubs:
+                current_fsubs.remove(fsubID)
+
+            if current_fsubs:
+                await self.grp_and_ids.update_one(
+                    {"grpID": grpID},
+                    {"$set": {"fsubIDs": current_fsubs}}
+                )
+            else:
+                await self.grp_and_ids.delete_one({"grpID": grpID})  # If no channels left, delete entry
+
             return True
         else:
-            return False
+            # Delete all force subscription channels for the group
+            result = await self.grp_and_ids.delete_one({"grpID": grpID})
+            return result.deleted_count > 0
 
     async def get_send_movie_update_status(self, bot_id):
         bot = await self.botcol.find_one({'id': bot_id})
