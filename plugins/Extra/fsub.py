@@ -83,29 +83,55 @@ async def force_subscribe(client, message):
 
 @Client.on_message(filters.command("del_fsub"))
 async def del_force_subscribe(client, message):
-    m = await message.reply_text("Wait im checking...")
-    if not message.chat.type in [enums.ChatType.GROUP, enums.ChatType.SUPERGROUP]:
-        return await m.edit("This command is only for groups!")
+    m = await message.reply_text("🔍 Checking...")
+
+    if message.chat.type not in [enums.ChatType.GROUP, enums.ChatType.SUPERGROUP]:
+        return await m.edit("❌ This command is only for groups!")
+
     if not await is_check_admin(client, message.chat.id, message.from_user.id):
-        return await m.edit("Only group admins can use this command!")
-    ifDeleted =await db.delFsub(message.chat.id)
+        return await m.edit("❌ Only group admins can use this command!")
+
+    ifDeleted = await db.delFsub(message.chat.id)
+
     if ifDeleted:
-        return await m.edit(f"Successfully removed force subscribe for - {message.chat.title}\nTo add again use <code>/fsub YOUR_FSUB_CHAT_ID</code>")
+        return await m.edit(
+            f"✅ Successfully removed force subscription for **{message.chat.title}**.\n"
+            "To add again, use:\n"
+            "`/fsub YOUR_FSUB_CHAT_ID`"
+        )
     else:
-        return await m.edit(f"Force subscribe not found in {message.chat.title}")
+        return await m.edit(f"⚠️ No force subscription found in **{message.chat.title}**.")
 
 @Client.on_message(filters.command("show_fsub"))
 async def show_fsub(client, message):
-    m = await message.reply_text("Wait im checking...")
-    if not message.chat.type in [enums.ChatType.GROUP, enums.ChatType.SUPERGROUP]:
-        return await m.edit("This command is only for groups!")
-    # check if commad is given by admin or not
+    m = await message.reply_text("🔍 Checking...")
+
+    if message.chat.type not in [enums.ChatType.GROUP, enums.ChatType.SUPERGROUP]:
+        return await m.edit("❌ This command is only for groups!")
+
     if not await is_check_admin(client, message.chat.id, message.from_user.id):
-        return await m.edit("Only group admins can use this command!")
-    fsub = await db.getFsub(message.chat.id)
-    if fsub:
-        #now gen a invite link
-        invite_link = await client.export_chat_invite_link(fsub)
-        await m.edit(f"Force subscribe is set to {fsub}\n<a href={invite_link}>Channel Link Link</a>" ,disable_web_page_preview=True)
-    else:
-        await m.edit(f"Force subscribe is not set in {message.chat.title}")
+        return await m.edit("❌ Only group admins can use this command!")
+
+    fsub_channels = await db.getFsub(message.chat.id)
+
+    if not fsub_channels:
+        return await m.edit(f"⚠️ No force subscription is set in **{message.chat.title}**.")
+
+    # Fetch invite links for all channels
+    channel_links = []
+    for fsub in fsub_channels:
+        try:
+            chat = await client.get_chat(fsub)
+            if chat.username:
+                invite_link = f"https://t.me/{chat.username}"
+            else:
+                invite_link = await client.export_chat_invite_link(fsub)
+            channel_links.append(f"🔹 <a href='{invite_link}'>{chat.title}</a>")
+        except Exception as e:
+            logger.error(f"Error getting invite link for {fsub}: {e}")
+
+    if not channel_links:
+        return await m.edit("⚠️ Could not generate invite links for the force-subscription channels.")
+
+    channels_text = "\n".join(channel_links)
+    await m.edit(f"✅ **Force Subscription Channels:**\n\n{channels_text}", disable_web_page_preview=True)
