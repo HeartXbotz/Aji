@@ -4,7 +4,11 @@ from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from info import API_ID, API_HASH, BOT_TOKEN  # Import API details from info.py
 
 # List of multiple channel IDs where the bot should add buttons
-CHANNEL_IDS = [-1002494713645, -1002181741528, -1002210542830, -1002297980917, -1001673914930, -1002137764926]  # Add more if needed
+CHANNEL_IDS = [
+    -1002137764926, -1001673914930, -1002297980917, -1002189755836,
+    -1002494713645, -1001507806145, -1002425198023, -1002284784259,
+    -1002171619563, -1002249456764, -1002181741528
+]  # Add more if needed
 
 @Client.on_message(filters.chat(CHANNEL_IDS) & filters.photo)
 async def add_button(client, message):
