@@ -22,7 +22,7 @@ ADMINS = [int(admin) if id_pattern.search(admin) else admin for admin in environ
 USERNAME = environ.get('USERNAME', "https://t.me/Heart_thieft") # ADMIN USERNAME
 LOG_CHANNEL = int(environ.get('LOG_CHANNEL', '-1002391269521'))
 MOVIE_GROUP_LINK = environ.get('MOVIE_GROUP_LINK', 'https://t.me/+hZG8OILc-qA3MzFl')
-CHANNELS = [int(ch) if id_pattern.search(ch) else ch for ch in environ.get('CHANNELS', '-1002489528366 -1002069400808 -1002251860287 -1002397280633 -1002297410701 -1002441627959 -1002348399921').split()]
+CHANNELS = [int(ch) if id_pattern.search(ch) else ch for ch in environ.get('CHANNELS', '-1002489528366 -1002069400808 -1002251860287 -1002397280633 -1002297410701 -1002441627959 -1002348399921 -1002266219670').split()]
 #---------------------------------------------------------------
 #---------------------------------------------------------------
 DATABASE_URI = environ.get('DATABASE_URI', "mongodb+srv://jeevanantham8157:1055221@ajifilterbot.uhazq.mongodb.net/?retryWrites=true&w=majority&appName=AjiFilterbot")
