@@ -358,7 +358,7 @@ User - {}"""
 ------------Set File Caption-----------
 /set_caption - set coustom file caption 
 -----------Set Imdb Template-----------
-/set_template - set IMDb template <a href="https://t.me/Jisshu_developer/8">Example</a>
+/set_template - set IMDb template <a href="https://t.me/HeartXBotz/15">Example</a>
 --------------Set Tutorial-------------
 /set_tutorial - set 1 verification tutorial  
 -------------Set Log Channel-----------
@@ -391,7 +391,7 @@ developer : Mr.ʜᴇᴀʀᴛ_ᴛʜɪᴇꜰ
 ------------Set File Caption-----------
 /set_caption - set coustom file caption 
 -----------Set Imdb Template-----------
-/set_template - set IMDb template <a href="https://t.me/Jisshu_developer/8">Example</a>
+/set_template - set IMDb template <a href="https://t.me/HeartXBotz/15">Example</a>
 --------------Set Tutorial-------------
 /set_tutorial {tutorial link} - set 1 verification tutorial 
 /set_tutorial_2 {tutorial link} - set 2 verification tutorial 
