@@ -36,7 +36,7 @@ async def pm_search(client, message):
     await mdb.update_top_messages(message.from_user.id, message.text)
     bot_id = client.me.id
     user_id = message.from_user.id    
- #   if user_id in ADMINS: return
+    if user_id in ADMINS: return
     if str(message.text).startswith('/'):
         return
     if await db.get_pm_search_status(bot_id):
@@ -45,12 +45,12 @@ async def pm_search(client, message):
         await auto_filter(client, message)
     else:
         await message.reply_text("<b><i>ɪ ᴀᴍ ɴᴏᴛ ᴡᴏʀᴋɪɴɢ ʜᴇʀᴇ. ꜱᴇᴀʀᴄʜ ᴍᴏᴠɪᴇꜱ ɪɴ ᴏᴜʀ ᴍᴏᴠɪᴇ ꜱᴇᴀʀᴄʜ ɢʀᴏᴜᴘ.</i></b>",
-                                 reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("📝 ᴍᴏᴠɪᴇ ꜱᴇᴀʀᴄʜ ɢʀᴏᴜᴘ ", url=f'https://t.me/+jLE8taFHuVM4M2Fl')]]))
+                                 reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("📝 ᴍᴏᴠɪᴇ ꜱᴇᴀʀᴄʜ ɢʀᴏᴜᴘ ", url=f'https://t.me/+3eyfMnGKc3BlMTg1')]]))
         
     
 @Client.on_message(filters.group & filters.text & filters.incoming)
 async def group_search(client, message):
-    #await message.react(emoji=random.choice(REACTIONS))
+    await message.react(emoji=random.choice(REACTIONS))
     await mdb.update_top_messages(message.from_user.id, message.text)
     user_id = message.from_user.id if message.from_user else None
     chat_id = message.chat.id
