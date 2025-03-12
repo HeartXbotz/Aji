@@ -15,7 +15,7 @@ async def add_button(client, message):
     if message.chat.id in CHANNEL_IDS:
         button = InlineKeyboardMarkup(
             [
-             [InlineKeyboardButton("💫 Mᴏᴠɪᴇꜱ Sᴇᴀʀᴄʜ Gʀᴏᴜᴘ 💫", url="https://t.me/TG_Moviesearch")],
+             [InlineKeyboardButton("💫 Mᴏᴠɪᴇꜱ Sᴇᴀʀᴄʜ Gʀᴏᴜᴘ 💫", url="https://t.me/+3eyfMnGKc3BlMTg1")],
              [InlineKeyboardButton("⚜️ Uᴘᴅᴀᴛᴇ Cʜᴀɴɴᴇʟ ⚜️", url="https://t.me/TamizhFiles")]
             ]
         )
