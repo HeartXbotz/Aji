@@ -15,17 +15,23 @@ async def upload_vtelegraph(client, message: Message):
     msg = await message.reply_text("⏳ **Uploading... Please wait.**")
 
     try:
-        # Forward media to @vTelegraphBot
-        forwarded = await client.forward_messages(TELEGRAPH_BOT, message.chat.id, reply.message_id)
+        # Forward media to @vTelegraphBot and get the forwarded message details
+        forwarded_messages = await client.forward_messages(TELEGRAPH_BOT, message.chat.id, reply.id)
         
+        # Extract message ID from forwarded message (handling list properly)
+        forwarded_message_id = forwarded_messages.id if isinstance(forwarded_messages, Message) else forwarded_messages[0].id
+
         # Wait for response (Checking every 2 sec for 10 times)
+        telegraph_url = None
         for _ in range(10):
             await asyncio.sleep(2)
-            async for bot_reply in client.get_chat_history(TELEGRAPH_BOT, limit=1):
-                if bot_reply.reply_to_message and bot_reply.reply_to_message.message_id == forwarded.message_id:
+            async for bot_reply in client.get_chat_history(TELEGRAPH_BOT, limit=5):
+                if bot_reply.reply_to_message and bot_reply.reply_to_message.id == forwarded_message_id:
                     if "https://graph.org" in bot_reply.text:
                         telegraph_url = bot_reply.text.strip()
                         break
+            if telegraph_url:
+                break
         else:
             return await msg.edit_text("❌ **Upload failed. Please try again later.**")
 
