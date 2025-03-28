@@ -14,15 +14,16 @@ async def c_upload(client, message: Message):
     msg = await message.reply_text("⏳ **Uploading... Please wait.**")
 
     try:
+        # Download Media
         downloaded_media = await reply.download()
 
         if not downloaded_media:
             return await msg.edit_text("❌ **Download failed. Try again.**")
 
-        # Upload to Telegraph
-        telegraph_url = upload_file(downloaded_media)[0]
+        # Upload to Telegraph (Fix: Use Index [0] to get the URL)
+        telegraph_url = upload_file(downloaded_media)[0]  # Fix: Correctly extracting the URL
         file_url = f"https://graph.org{telegraph_url}"
-        os.remove(downloaded_media)
+        os.remove(downloaded_media)  # Clean up the file
 
         # Stylish Caption
         caption_text = (
@@ -30,8 +31,8 @@ async def c_upload(client, message: Message):
             f"👤 **Uploaded by:** {user_mention}\n"
             f"🌍 **Host:** Telegraph\n"
             f"🔗 **Direct Link:** [Click to View]({file_url})\n"
-            f"⚡ **Share your masterpiece with the world!**\n\n"
-            f"🔗 **Powered by:** **[Heart Thief](https://t.me/heartthieft)**\n"
+            f"⚡ *Share your masterpiece with the world!*\n\n"
+            f"🔗 **Powered by:** [Heart Thief](https://t.me/heartthieft)"
         )
 
         # Buttons (View Image + Upload Another)
