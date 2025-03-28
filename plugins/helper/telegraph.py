@@ -1,52 +1,52 @@
-import os
+import asyncio
 from pyrogram import Client, filters
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
-from telegraph import upload_file  # Telegraph upload function
+
+TELEGRAPH_BOT = "vTelegraphBot"  # Official Telegraph Bot
 
 @Client.on_message(filters.command(["img", "upload"], prefixes="/") & filters.reply)
-async def c_upload(client, message: Message):
+async def upload_vtelegraph(client, message: Message):
     reply = message.reply_to_message
     user_mention = f"[{message.from_user.first_name}](tg://user?id={message.from_user.id})"
 
-    if not reply.media:
+    if not reply or not reply.media:
         return await message.reply_text("📸 **Reply to an image to upload it to Telegraph.**")
 
     msg = await message.reply_text("⏳ **Uploading... Please wait.**")
 
     try:
-        # Download the media
-        downloaded_media = await reply.download()
-
-        if not downloaded_media:
-            return await msg.edit_text("❌ **Download failed. Try again.**")
-
-        # Upload to Telegraph
-        upload_result = upload_file(downloaded_media)  # Returns a list
-
-        if not upload_result:  # If the list is empty, something went wrong
-            return await msg.edit_text("❌ **Failed to upload. Try again.**")
-
-        file_url = f"https://graph.org{upload_result[0]}"  # Correct URL format
-        os.remove(downloaded_media)  # Remove downloaded file
+        # Forward media to @vTelegraphBot
+        forwarded = await client.forward_messages(TELEGRAPH_BOT, message.chat.id, reply.message_id)
+        
+        # Wait for response (Checking every 2 sec for 10 times)
+        for _ in range(10):
+            await asyncio.sleep(2)
+            async for bot_reply in client.get_chat_history(TELEGRAPH_BOT, limit=1):
+                if bot_reply.reply_to_message and bot_reply.reply_to_message.message_id == forwarded.message_id:
+                    if "https://graph.org" in bot_reply.text:
+                        telegraph_url = bot_reply.text.strip()
+                        break
+        else:
+            return await msg.edit_text("❌ **Upload failed. Please try again later.**")
 
         # Stylish Caption
         caption_text = (
-            f"✨ **Your Image is Ready!** ✨\n\n"
+            f"✨ **Image Successfully Uploaded!** ✨\n\n"
             f"👤 **Uploaded by:** {user_mention}\n"
             f"📤 **Hosting:** Telegraph\n"
-            f"🔗 **Your Link:** [🔗 View Image]({file_url})\n\n"
+            f"🔗 **Your Link:** [🔗 View Image]({telegraph_url})\n\n"
             f"⚡ **Share this link with your friends!**\n\n"
             f"🔗 **Powered by:** [Heart Thief](https://t.me/heartthieft)"
         )
 
         # Inline Buttons
         buttons = InlineKeyboardMarkup([
-            [InlineKeyboardButton("🌍 View Image", url=file_url)],
+            [InlineKeyboardButton("🌍 View Image", url=telegraph_url)],
             [InlineKeyboardButton("🔄 Upload Another", callback_data="upload_another")]
         ])
 
         # Send Image Preview with Caption
-        await message.reply_photo(photo=file_url, caption=caption_text, reply_markup=buttons)
+        await message.reply_photo(photo=telegraph_url, caption=caption_text, reply_markup=buttons)
 
         # Delete "Uploading..." message
         await msg.delete()
