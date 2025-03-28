@@ -5,7 +5,7 @@ from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 
 CATBOX_API = "https://catbox.moe/user/api.php"
 
-@Client.on_message(filters.command(["img", "cup", "catbox"], prefixes="/") & filters.reply)
+@Client.on_message(filters.command(["img", "telegraph", "catbox"], prefixes="/") & filters.reply)
 async def c_upload(client, message: Message):
     reply = message.reply_to_message
     user_mention = f"[{message.from_user.first_name}](tg://user?id={message.from_user.id})"
