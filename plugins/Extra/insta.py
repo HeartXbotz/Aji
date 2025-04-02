@@ -13,9 +13,9 @@ headers = {
     "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
     "X-Requested-With": "XMLHttpRequest",
     "Content-Length": "99",
-    "Origin": "https://saveig.app",
+    "Origin": "https://snapinsta.app",
     "Connection": "keep-alive",
-    "Referer": "https://saveig.app/en",
+    "Referer": "https://snapinsta.app/es",
 }
 @Client.on_message(filters.regex(r'https?://.*instagram[^\s]+') & filters.incoming)
 async def link_handler(Mbot, message):
@@ -45,7 +45,7 @@ async def link_handler(Mbot, message):
                    pass 
                if not meta_tag:
                   ddinsta=False
-                  meta_tag = requests.post("https://saveig.app/api/ajaxSearch", data={"q": link, "t": "media", "lang": "en"}, headers=headers)
+                  meta_tag = requests.post("https://snapinsta.app/action.php", data={"q": link, "t": "media", "lang": "en"}, headers=headers)
              
                   if meta_tag.ok:
                      res=meta_tag.json()
@@ -67,7 +67,7 @@ async def link_handler(Mbot, message):
                        x.write(requests.get(content_value,headers=headers).content)
                    dump_file=await message.reply_video(downfile,caption="ᴅᴏᴡɴʟᴏᴀᴅᴇᴅ ʙʏ @Itzheart_bot") 
             elif "/p/" in url:
-                  meta_tag = requests.post("https://saveig.app/api/ajaxSearch", data = {"q": "link", "t": "media", "lang": "en"}, headers = {"User-Agent": "YourUserAgentHere"})
+                  meta_tag = requests.post("https://snapinsta.app/action.php", data = {"q": "link", "t": "media", "lang": "en"}, headers = {"User-Agent": "YourUserAgentHere"})
                   if meta_tag.ok:
                      res=meta_tag.json()
                      meta=re.findall(r'href="(https?://[^"]+)"', res['data']) 
@@ -83,7 +83,7 @@ async def link_handler(Mbot, message):
                      except:
                          pass 
             elif "stories" in url:
-                  meta_tag = requests.post("https://saveig.app/api/ajaxSearch", data={"q": link, "t": "media", "lang": "en"}, headers=headers)
+                  meta_tag = requests.post("https://snapinsta.app/action.php", data={"q": link, "t": "media", "lang": "en"}, headers=headers)
                   if meta_tag.ok:
                      res=meta_tag.json()
                      meta=re.findall(r'href="(https?://[^"]+)"', res['data']) 
